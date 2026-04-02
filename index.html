@@ -1,773 +1,231 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reword — AI Humanizer</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-–bg: #0d0d0d;
-–surface: #161616;
-–border: #2a2a2a;
-–text: #e8e0d0;
-–muted: #6b6459;
-–accent: #c9a84c;
-–accent-dim: #3d2e0f;
-–danger: #e05252;
-–green: #5cb87a;
-–panel-bg: #111111;
-}
-
-html, body {
-height: 100%;
-background: var(–bg);
-color: var(–text);
-font-family: ‘DM Sans’, sans-serif;
-font-size: 15px;
-line-height: 1.6;
-overflow-x: hidden;
-}
-
-/* Background grain */
-body::before {
-content: ‘’;
-position: fixed;
-inset: 0;
-background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.03’/%3E%3C/svg%3E”);
-pointer-events: none;
-z-index: 0;
-opacity: 0.4;
-}
-
-/* NAV */
-nav {
-position: sticky;
-top: 0;
-z-index: 100;
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 18px 40px;
-border-bottom: 1px solid var(–border);
-background: rgba(13,13,13,0.85);
-backdrop-filter: blur(12px);
-}
-
-.logo {
-font-family: ‘Playfair Display’, serif;
-font-size: 22px;
-color: var(–text);
-letter-spacing: -0.5px;
-}
-
-.logo span {
-color: var(–accent);
-font-style: italic;
-}
-
-.nav-tag {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-color: var(–muted);
-letter-spacing: 0.08em;
-text-transform: uppercase;
-border: 1px solid var(–border);
-padding: 4px 10px;
-border-radius: 3px;
-}
-
-/* HERO */
-.hero {
-text-align: center;
-padding: 60px 40px 40px;
-position: relative;
-z-index: 1;
-}
-
-.hero-eyebrow {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-color: var(–accent);
-letter-spacing: 0.15em;
-text-transform: uppercase;
-margin-bottom: 16px;
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 10px;
-}
-
-.hero-eyebrow::before,
-.hero-eyebrow::after {
-content: ‘’;
-width: 32px;
-height: 1px;
-background: var(–accent);
-opacity: 0.5;
-}
-
-h1 {
-font-family: ‘Playfair Display’, serif;
-font-size: clamp(36px, 5vw, 58px);
-font-weight: 700;
-line-height: 1.1;
-letter-spacing: -1px;
-max-width: 700px;
-margin: 0 auto 16px;
-}
-
-h1 em {
-font-style: italic;
-color: var(–accent);
-}
-
-.hero p {
-color: var(–muted);
-max-width: 480px;
-margin: 0 auto;
-font-weight: 300;
-font-size: 16px;
-}
-
-/* SETTINGS BAR */
-.settings-bar {
-display: flex;
-align-items: center;
-gap: 10px;
-padding: 14px 40px;
-border-bottom: 1px solid var(–border);
-background: var(–surface);
-flex-wrap: wrap;
-position: relative;
-z-index: 1;
-}
-
-.settings-label {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 10px;
-color: var(–muted);
-text-transform: uppercase;
-letter-spacing: 0.1em;
-margin-right: 4px;
-}
-
-.pill-group {
-display: flex;
-gap: 6px;
-align-items: center;
-}
-
-.pill {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-padding: 5px 12px;
-border-radius: 100px;
-border: 1px solid var(–border);
-background: transparent;
-color: var(–muted);
-cursor: pointer;
-transition: all 0.15s;
-letter-spacing: 0.04em;
-}
-
-.pill:hover { border-color: var(–accent); color: var(–accent); }
-.pill.active { background: var(–accent-dim); border-color: var(–accent); color: var(–accent); }
-
-.sep { width: 1px; height: 20px; background: var(–border); margin: 0 6px; }
-
-/* MAIN EDITOR */
-.editor-wrap {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 0;
-height: calc(100vh - 280px);
-min-height: 480px;
-position: relative;
-z-index: 1;
-}
-
-.editor-panel {
-display: flex;
-flex-direction: column;
-border-right: 1px solid var(–border);
-background: var(–panel-bg);
-overflow: hidden;
-}
-
-.editor-panel:last-child { border-right: none; }
-
-.panel-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 12px 20px;
-border-bottom: 1px solid var(–border);
-background: var(–surface);
-}
-
-.panel-title {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-text-transform: uppercase;
-letter-spacing: 0.1em;
-color: var(–muted);
-display: flex;
-align-items: center;
-gap: 7px;
-}
-
-.panel-dot {
-width: 6px;
-height: 6px;
-border-radius: 50%;
-background: var(–border);
-}
-
-.panel-dot.active { background: var(–accent); }
-.panel-dot.green { background: var(–green); }
-
-.panel-actions {
-display: flex;
-gap: 6px;
-align-items: center;
-}
-
-.icon-btn {
-background: transparent;
-border: 1px solid var(–border);
-color: var(–muted);
-width: 28px;
-height: 28px;
-border-radius: 5px;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 13px;
-transition: all 0.15s;
-}
-
-.icon-btn:hover { border-color: var(–text); color: var(–text); }
-
-textarea {
-flex: 1;
-background: transparent;
-border: none;
-outline: none;
-color: var(–text);
-font-family: ‘DM Sans’, sans-serif;
-font-size: 15px;
-line-height: 1.75;
-resize: none;
-padding: 24px 28px;
-font-weight: 300;
-}
-
-textarea::placeholder { color: var(–muted); }
-
-.output-area {
-flex: 1;
-padding: 24px 28px;
-overflow-y: auto;
-font-size: 15px;
-line-height: 1.75;
-font-weight: 300;
-white-space: pre-wrap;
-word-break: break-word;
-}
-
-.output-area.empty {
-display: flex;
-align-items: center;
-justify-content: center;
-color: var(–muted);
-font-size: 13px;
-font-family: ‘IBM Plex Mono’, monospace;
-}
-
-.output-area.streaming { color: var(–text); }
-
-/* Streaming cursor */
-.cursor-blink {
-display: inline-block;
-width: 2px;
-height: 1em;
-background: var(–accent);
-vertical-align: text-bottom;
-animation: blink 0.8s infinite;
-margin-left: 1px;
-}
-
-@keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
-
-/* BOTTOM ACTION BAR */
-.action-bar {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 14px;
-padding: 18px 40px;
-border-top: 1px solid var(–border);
-background: var(–surface);
-position: relative;
-z-index: 1;
-}
-
-.btn-humanize {
-display: flex;
-align-items: center;
-gap: 10px;
-background: var(–accent);
-color: #0d0d0d;
-border: none;
-padding: 13px 36px;
-border-radius: 6px;
-font-family: ‘DM Sans’, sans-serif;
-font-weight: 500;
-font-size: 15px;
-cursor: pointer;
-transition: all 0.2s;
-letter-spacing: -0.2px;
-}
-
-.btn-humanize:hover:not(:disabled) {
-background: #e0b96a;
-transform: translateY(-1px);
-box-shadow: 0 6px 24px rgba(201, 168, 76, 0.25);
-}
-
-.btn-humanize:disabled {
-opacity: 0.5;
-cursor: not-allowed;
-transform: none;
-}
-
-.btn-clear {
-background: transparent;
-border: 1px solid var(–border);
-color: var(–muted);
-padding: 13px 20px;
-border-radius: 6px;
-font-family: ‘DM Sans’, sans-serif;
-font-size: 14px;
-cursor: pointer;
-transition: all 0.15s;
-}
-
-.btn-clear:hover { border-color: var(–danger); color: var(–danger); }
-
-.char-count {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 11px;
-color: var(–muted);
-margin-left: 8px;
-}
-
-.char-count.warn { color: var(–accent); }
-
-/* Toast */
-.toast {
-position: fixed;
-bottom: 30px;
-left: 50%;
-transform: translateX(-50%) translateY(20px);
-background: var(–surface);
-border: 1px solid var(–border);
-color: var(–text);
-padding: 10px 20px;
-border-radius: 6px;
-font-size: 13px;
-font-family: ‘IBM Plex Mono’, monospace;
-opacity: 0;
-transition: all 0.25s;
-pointer-events: none;
-z-index: 999;
-white-space: nowrap;
-}
-
-.toast.show {
-opacity: 1;
-transform: translateX(-50%) translateY(0);
-}
-
-/* Spinner */
-.spinner {
-width: 16px;
-height: 16px;
-border: 2px solid rgba(13,13,13,0.3);
-border-top-color: #0d0d0d;
-border-radius: 50%;
-animation: spin 0.6s linear infinite;
-display: none;
-}
-
-.btn-humanize.loading .spinner { display: block; }
-.btn-humanize.loading .btn-label { opacity: 0.6; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* Diff highlighting */
-.diff-word { background: rgba(201, 168, 76, 0.12); border-radius: 2px; }
-
-/* Stats bar */
-.stats {
-display: flex;
-gap: 20px;
-padding: 8px 28px;
-border-top: 1px solid var(–border);
-background: var(–surface);
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 10px;
-color: var(–muted);
-text-transform: uppercase;
-letter-spacing: 0.06em;
-}
-
-.stat-item span { color: var(–text); font-size: 11px; }
-
-/* API Key bar */
-.apikey-bar {
-display: flex;
-align-items: center;
-gap: 10px;
-padding: 10px 40px;
-background: #0a0a0a;
-border-bottom: 1px solid var(–border);
-position: relative;
-z-index: 1;
-}
-
-.apikey-bar label {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 10px;
-color: var(–muted);
-text-transform: uppercase;
-letter-spacing: 0.1em;
-white-space: nowrap;
-}
-
-.apikey-input {
-flex: 1;
-max-width: 380px;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 5px;
-color: var(–text);
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 12px;
-padding: 6px 12px;
-outline: none;
-transition: border-color 0.15s;
-}
-
-.apikey-input:focus { border-color: var(–accent); }
-
-.apikey-hint {
-font-family: ‘IBM Plex Mono’, monospace;
-font-size: 10px;
-color: var(–muted);
-}
-
-/* Mobile */
-@media (max-width: 700px) {
-nav, .settings-bar, .action-bar { padding: 14px 16px; }
-.hero { padding: 40px 20px 24px; }
-.editor-wrap { grid-template-columns: 1fr; height: auto; }
-.editor-panel { min-height: 220px; border-right: none; border-bottom: 1px solid var(–border); }
-textarea, .output-area { padding: 16px; }
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:#0d0d0d;color:#e8e0d0;font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid #2a2a2a;background:#111}
+.logo{font-family:'Playfair Display',serif;font-size:22px;color:#e8e0d0}
+.logo em{color:#c9a84c;font-style:italic}
+.nav-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b6459;border:1px solid #2a2a2a;padding:3px 10px;border-radius:3px;letter-spacing:.08em}
+.hero{text-align:center;padding:48px 24px 28px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#c9a84c;letter-spacing:.15em;margin-bottom:14px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(32px,5vw,54px);font-weight:700;line-height:1.1;margin-bottom:12px}
+h1 em{color:#c9a84c;font-style:italic}
+.subtitle{color:#6b6459;max-width:460px;margin:0 auto;font-weight:300}
+.settings{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 32px;background:#161616;border-bottom:1px solid #2a2a2a}
+.slabel{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b6459;text-transform:uppercase;letter-spacing:.1em;margin-right:2px}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 13px;border-radius:100px;border:1px solid #2a2a2a;background:transparent;color:#6b6459;cursor:pointer;transition:all .15s}
+.pill:hover{border-color:#c9a84c;color:#c9a84c}
+.pill.on{background:#3d2e0f;border-color:#c9a84c;color:#c9a84c}
+.sep{width:1px;height:20px;background:#2a2a2a;margin:0 6px}
+.panels{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #2a2a2a}
+.panel{display:flex;flex-direction:column;border-right:1px solid #2a2a2a}
+.panel:last-child{border-right:none}
+.phead{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:#161616;border-bottom:1px solid #2a2a2a}
+.ptitle{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b6459;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:#2a2a2a}
+.dot.amber{background:#c9a84c}
+.dot.green{background:#5cb87a}
+.pbtns{display:flex;gap:6px}
+.ibtn{background:transparent;border:1px solid #2a2a2a;color:#6b6459;width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ibtn:hover{border-color:#e8e0d0;color:#e8e0d0}
+textarea{flex:1;background:transparent;border:none;outline:none;color:#e8e0d0;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.75;resize:none;padding:20px;min-height:260px;font-weight:300}
+textarea::placeholder{color:#3a3a3a}
+.out{flex:1;padding:20px;font-size:14px;line-height:1.75;font-weight:300;overflow-y:auto;min-height:260px;white-space:pre-wrap;word-break:break-word}
+.out.idle{color:#3a3a3a;font-family:'IBM Plex Mono',monospace;font-size:12px;display:flex;align-items:center;justify-content:center}
+.out.err{color:#e05252}
+.pfoot{padding:7px 18px;background:#161616;border-top:1px solid #2a2a2a;font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6b6459;text-transform:uppercase;letter-spacing:.06em}
+.pfoot span{color:#e8e0d0}
+.actions{display:flex;align-items:center;justify-content:center;gap:12px;padding:16px 32px;background:#161616;border-top:1px solid #2a2a2a}
+.btn-clear{background:transparent;border:1px solid #2a2a2a;color:#6b6459;padding:11px 18px;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all .15s}
+.btn-clear:hover{border-color:#e05252;color:#e05252}
+.btn-go{background:#c9a84c;color:#0d0d0d;border:none;padding:11px 32px;border-radius:6px;font-family:'DM Sans',sans-serif;font-weight:500;font-size:15px;cursor:pointer;transition:all .2s}
+.btn-go:hover:not(:disabled){background:#dfc06e;transform:translateY(-1px);box-shadow:0 6px 24px rgba(201,168,76,.25)}
+.btn-go:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:#1a1a1a;border:1px solid #2a2a2a;color:#e8e0d0;padding:8px 18px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:640px){.panels{grid-template-columns:1fr;}.panel{border-right:none;border-bottom:1px solid #2a2a2a}.settings,.actions{padding:12px 16px}}
 </style>
-
 </head>
 <body>
 
 <nav>
-  <div class="logo">Re<span>word</span></div>
-  <div class="nav-tag">AI Humanizer v1.0</div>
+  <div class="logo">Re<em>word</em></div>
+  <div class="nav-tag">AI HUMANIZER V1.0</div>
 </nav>
 
-<div class="apikey-bar">
-  <label>Gemini API Key</label>
-  <input type="password" class="apikey-input" id="apiKeyInput" placeholder="AIza..." autocomplete="off">
-  <span class="apikey-hint">Get yours free at aistudio.google.com · stored only in memory</span>
-</div>
-
 <div class="hero">
-  <div class="hero-eyebrow">Powered by Claude</div>
+  <div class="eyebrow">── POWERED BY GEMINI ──</div>
   <h1>Make AI text sound <em>human.</em></h1>
-  <p>Paste AI-generated content below and transform it into natural, authentic writing — in seconds.</p>
+  <p class="subtitle">Paste AI-generated content below and transform it into natural, authentic writing — in seconds.</p>
 </div>
 
-<div class="settings-bar">
-  <span class="settings-label">Tone</span>
-  <div class="pill-group" id="toneGroup">
-    <button class="pill active" data-value="natural">Natural</button>
-    <button class="pill" data-value="casual">Casual</button>
-    <button class="pill" data-value="professional">Professional</button>
-    <button class="pill" data-value="academic">Academic</button>
-  </div>
+<div class="settings">
+  <span class="slabel">Tone</span>
+  <button class="pill on" data-group="tone" data-val="Natural">Natural</button>
+  <button class="pill" data-group="tone" data-val="Casual">Casual</button>
+  <button class="pill" data-group="tone" data-val="Professional">Professional</button>
+  <button class="pill" data-group="tone" data-val="Academic">Academic</button>
   <div class="sep"></div>
-  <span class="settings-label">Intensity</span>
-  <div class="pill-group" id="intensityGroup">
-    <button class="pill" data-value="light">Light</button>
-    <button class="pill active" data-value="moderate">Moderate</button>
-    <button class="pill" data-value="heavy">Heavy</button>
+  <span class="slabel">Intensity</span>
+  <button class="pill" data-group="intensity" data-val="Light">Light</button>
+  <button class="pill on" data-group="intensity" data-val="Moderate">Moderate</button>
+  <button class="pill" data-group="intensity" data-val="Heavy">Heavy</button>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <div class="phead">
+      <div class="ptitle"><div class="dot amber"></div>AI-Generated Text</div>
+      <div class="pbtns">
+        <button class="ibtn" id="pasteBtn" title="Paste">📋</button>
+        <button class="ibtn" id="clearIn" title="Clear">✕</button>
+      </div>
+    </div>
+    <textarea id="input" placeholder="Paste your AI-generated text here..."></textarea>
+    <div class="pfoot">Words: <span id="wIn">0</span> &nbsp; Chars: <span id="cIn">0</span></div>
+  </div>
+  <div class="panel">
+    <div class="phead">
+      <div class="ptitle"><div class="dot" id="outDot"></div>Humanized Output</div>
+      <div class="pbtns">
+        <button class="ibtn" id="copyBtn" title="Copy">⎘</button>
+      </div>
+    </div>
+    <div class="out idle" id="output">Output will appear here</div>
+    <div class="pfoot" id="outFoot" style="visibility:hidden">Words: <span id="wOut">0</span></div>
   </div>
 </div>
 
-<div class="editor-wrap">
-  <!-- Input -->
-  <div class="editor-panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <div class="panel-dot active"></div>
-        AI-Generated Text
-      </div>
-      <div class="panel-actions">
-        <button class="icon-btn" id="pasteBtn" title="Paste">📋</button>
-        <button class="icon-btn" id="clearInputBtn" title="Clear">✕</button>
-      </div>
-    </div>
-    <textarea id="inputText" placeholder="Paste your AI-generated text here...
-
-The tool will analyze patterns typical of AI writing — repetitive sentence structure, overused transitions, unnaturally balanced arguments — and rewrite it to read like a real person wrote it.”></textarea>
-<div class="stats">
-<div class="stat-item">Words: <span id="wordCount">0</span></div>
-<div class="stat-item">Chars: <span id="charCount">0</span></div>
-</div>
-
-  </div>
-
-  <!-- Output -->
-
-  <div class="editor-panel">
-    <div class="panel-header">
-      <div class="panel-title">
-        <div class="panel-dot" id="outputDot"></div>
-        Humanized Output
-      </div>
-      <div class="panel-actions">
-        <button class="icon-btn" id="copyBtn" title="Copy output">⎘</button>
-      </div>
-    </div>
-    <div class="output-area empty" id="outputArea">
-      <span>Output will appear here</span>
-    </div>
-    <div class="stats" id="outputStats" style="visibility:hidden">
-      <div class="stat-item">Words: <span id="outWordCount">0</span></div>
-      <div class="stat-item">Chars: <span id="outCharCount">0</span></div>
-      <div class="stat-item">Changes: <span id="changeCount">—</span></div>
-    </div>
-  </div>
-</div>
-
-<div class="action-bar">
-  <button class="btn-clear" id="clearAllBtn">Clear All</button>
-  <button class="btn-humanize" id="humanizeBtn">
-    <div class="spinner"></div>
-    <span class="btn-label">✦ Humanize Text</span>
-  </button>
+<div class="actions">
+  <button class="btn-clear" id="clearAll">Clear All</button>
+  <button class="btn-go" id="goBtn">✦ Humanize Text</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const inputEl = document.getElementById('inputText');
-const outputEl = document.getElementById('outputArea');
-const humanizeBtn = document.getElementById('humanizeBtn');
-const outputDot = document.getElementById('outputDot');
-const outputStats = document.getElementById('outputStats');
+const API_KEY = 'AIzaSyB23zBVJW7wvlO7kk5QvePTZSoTbnk6nRg';
+const inputEl = document.getElementById('input');
+const outputEl = document.getElementById('output');
+const goBtn = document.getElementById('goBtn');
+const outDot = document.getElementById('outDot');
+const outFoot = document.getElementById('outFoot');
+let tone = 'Natural', intensity = 'Moderate', busy = false;
 
-let selectedTone = 'natural';
-let selectedIntensity = 'moderate';
-let isStreaming = false;
-
-// Pill group logic
-function setupPillGroup(id, callback) {
-  document.getElementById(id).addEventListener('click', e => {
-    const pill = e.target.closest('.pill');
-    if (!pill) return;
-    document.querySelectorAll(`#${id} .pill`).forEach(p => p.classList.remove('active'));
-    pill.classList.add('active');
-    callback(pill.dataset.value);
+// Pills
+document.querySelectorAll('.pill').forEach(p => {
+  p.addEventListener('click', () => {
+    document.querySelectorAll(`.pill[data-group="${p.dataset.group}"]`).forEach(x => x.classList.remove('on'));
+    p.classList.add('on');
+    if (p.dataset.group === 'tone') tone = p.dataset.val;
+    else intensity = p.dataset.val;
   });
-}
+});
 
-setupPillGroup('toneGroup', v => selectedTone = v);
-setupPillGroup('intensityGroup', v => selectedIntensity = v);
-
-// Word/char count
-inputEl.addEventListener('input', updateInputStats);
-
-function updateInputStats() {
-  const text = inputEl.value.trim();
-  const words = text ? text.split(/\s+/).length : 0;
-  document.getElementById('wordCount').textContent = words;
-  document.getElementById('charCount').textContent = inputEl.value.length;
-}
-
-function updateOutputStats(text) {
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  document.getElementById('outWordCount').textContent = words;
-  document.getElementById('outCharCount').textContent = text.length;
-  outputStats.style.visibility = 'visible';
-}
+// Stats
+inputEl.addEventListener('input', () => {
+  const v = inputEl.value;
+  document.getElementById('wIn').textContent = v.trim() ? v.trim().split(/\s+/).length : 0;
+  document.getElementById('cIn').textContent = v.length;
+});
 
 // Paste
 document.getElementById('pasteBtn').addEventListener('click', async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    inputEl.value = text;
-    updateInputStats();
-    showToast('Pasted from clipboard');
-  } catch { showToast('Allow clipboard access to paste'); }
+  try { inputEl.value = await navigator.clipboard.readText(); inputEl.dispatchEvent(new Event('input')); toast('Pasted'); }
+  catch { toast('Allow clipboard access'); }
 });
 
-// Clear
-document.getElementById('clearInputBtn').addEventListener('click', () => {
-  inputEl.value = '';
-  updateInputStats();
+document.getElementById('clearIn').addEventListener('click', () => { inputEl.value = ''; inputEl.dispatchEvent(new Event('input')); });
+document.getElementById('clearAll').addEventListener('click', () => {
+  inputEl.value = ''; inputEl.dispatchEvent(new Event('input'));
+  outputEl.textContent = 'Output will appear here';
+  outputEl.className = 'out idle';
+  outDot.className = 'dot';
+  outFoot.style.visibility = 'hidden';
 });
-
-document.getElementById('clearAllBtn').addEventListener('click', () => {
-  inputEl.value = '';
-  updateInputStats();
-  outputEl.innerHTML = '<span>Output will appear here</span>';
-  outputEl.className = 'output-area empty';
-  outputDot.className = 'panel-dot';
-  outputStats.style.visibility = 'hidden';
-});
-
-// Copy
 document.getElementById('copyBtn').addEventListener('click', () => {
-  const text = outputEl.innerText;
-  if (!text || text === 'Output will appear here') return showToast('Nothing to copy');
-  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard ✓'));
+  if (!outputEl.textContent || outputEl.classList.contains('idle')) return toast('Nothing to copy');
+  navigator.clipboard.writeText(outputEl.textContent).then(() => toast('Copied ✓'));
 });
 
-// Toast
-function showToast(msg) {
+function toast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// Build prompt
-function buildPrompt(text, tone, intensity) {
-  const toneInstructions = {
-    natural: 'natural, conversational human voice',
-    casual: 'relaxed, casual everyday tone — like texting a friend',
-    professional: 'professional and polished, like a competent expert',
-    academic: 'academic but readable — thoughtful, precise, not robotic'
+function buildPrompt(text) {
+  const toneMap = {Natural:'natural conversational',Casual:'casual everyday like texting a friend',Professional:'professional and polished',Academic:'academic but readable'};
+  const intMap = {
+    Light:'Make light changes: vary sentence length, soften formal phrases, keep most structure.',
+    Moderate:"Rewrite substantially: vary rhythm, use natural transitions, remove AI clichés like 'In conclusion', 'Furthermore', 'It's important to note'.",
+    Heavy:'Completely reimagine in a human voice. Restructure, inject personality, vary patterns. Same meaning, transformed writing.'
   };
+  return `You are an expert editor transforming AI-generated text into authentic human writing.
 
-  const intensityInstructions = {
-    light: 'Make light changes: vary sentence length, soften overly formal phrases, add a touch of personality. Keep most of the original structure.',
-    moderate: 'Rewrite substantially: change structure, vary rhythm, use more natural transitions, eliminate AI clichés and overused phrases like "In conclusion", "It\'s important to note", "Furthermore", "Moreover". Sound like a real human.',
-    heavy: 'Completely reimagine the text from scratch in a human voice. Restructure ideas, inject personality, use varied sentence patterns, include natural imperfection, avoid any pattern that sounds AI-generated. The ideas should be the same but the writing totally transformed.'
-  };
-
-  return `You are an expert writing editor who specializes in transforming AI-generated text into authentic human writing.
-
-Rewrite the following text so it sounds like a real human wrote it. Use a ${toneInstructions[tone]}.
-
-${intensityInstructions[intensity]}
+Rewrite in a ${toneMap[tone]} voice.
+${intMap[intensity]}
 
 Rules:
-- Never use "In conclusion", "Furthermore", "Moreover", "It's important to note", "Certainly!", "Absolutely!", or similar AI filler phrases
-- Vary sentence lengths — mix short punchy sentences with longer ones
-- Use contractions naturally where they fit
-- Don't explain what you're doing — just produce the rewritten text directly
-- Match the original meaning and core information exactly
+- No "In conclusion", "Furthermore", "Moreover", "It's important to note", "Certainly!", "Absolutely!"
+- Vary sentence lengths naturally
+- Use contractions where they fit
 - Output ONLY the rewritten text, nothing else
 
-Text to humanize:
+Text:
 ${text}`;
 }
 
-// Main humanize function
-humanizeBtn.addEventListener('click', async () => {
+goBtn.addEventListener('click', async () => {
   const text = inputEl.value.trim();
-  if (!text) return showToast('Please paste some text first');
-
-  const apiKey = document.getElementById('apiKeyInput').value.trim() || 'AIzaSyB23zBVJW7wvlO7kk5QvePTZSoTbnk6nRg';
-
-  if (isStreaming) return;
-
-  isStreaming = true;
-  humanizeBtn.classList.add('loading');
-  humanizeBtn.disabled = true;
-
-  outputEl.innerHTML = '<span style="color:var(--muted);font-family:\'IBM Plex Mono\',monospace;font-size:13px">Humanizing...</span>';
-  outputEl.className = 'output-area streaming';
-  outputDot.className = 'panel-dot active';
+  if (!text) return toast('Paste some text first');
+  if (busy) return;
+  busy = true;
+  goBtn.disabled = true;
+  goBtn.textContent = 'Humanizing...';
+  outputEl.textContent = 'Working...';
+  outputEl.className = 'out';
+  outDot.className = 'dot amber';
 
   try {
-    const isLocal = location.protocol === 'file:';
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    const fetchUrl = isLocal ? `https://corsproxy.io/?url=${encodeURIComponent(geminiUrl)}` : geminiUrl;
-
-    const response = await fetch(fetchUrl,
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          contents: [{ parts: [{ text: buildPrompt(text, selectedTone, selectedIntensity) }] }],
-          generationConfig: { maxOutputTokens: 2000, temperature: 0.9 }
+          contents: [{parts:[{text: buildPrompt(text)}]}],
+          generationConfig: {maxOutputTokens:2000, temperature:0.9}
         })
       }
     );
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    const fullText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    if (!fullText) throw new Error('Empty response from API');
-
-    outputEl.innerHTML = escapeHtml(fullText);
-    outputDot.className = 'panel-dot green';
-    updateOutputStats(fullText);
-
-    // Estimate changes
-    const inputWords = text.trim().split(/\s+/);
-    const outputWords = fullText.trim().split(/\s+/);
-    let changed = 0;
-    outputWords.forEach((w, i) => { if (w !== inputWords[i]) changed++; });
-    const pct = Math.round((changed / outputWords.length) * 100);
-    document.getElementById('changeCount').textContent = `~${pct}%`;
-
-    showToast('Humanized successfully ✓');
-
-  } catch (err) {
-    outputEl.textContent = '⚠ Error: ' + err.message;
-    outputDot.className = 'panel-dot';
-    showToast('Error: ' + err.message);
-    console.error(err);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error?.message || `HTTP ${res.status}`);
+    const out = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!out) throw new Error('Empty response');
+    outputEl.textContent = out;
+    outputEl.className = 'out';
+    outDot.className = 'dot green';
+    document.getElementById('wOut').textContent = out.trim().split(/\s+/).length;
+    outFoot.style.visibility = 'visible';
+    toast('Done ✓');
+  } catch(e) {
+    outputEl.textContent = '⚠ ' + e.message;
+    outputEl.className = 'out err';
+    outDot.className = 'dot';
+    toast('Error: ' + e.message);
   } finally {
-    isStreaming = false;
-    humanizeBtn.classList.remove('loading');
-    humanizeBtn.disabled = false;
+    busy = false;
+    goBtn.disabled = false;
+    goBtn.textContent = '✦ Humanize Text';
   }
 });
-
-function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 </script>
-
 </body>
 </html>
